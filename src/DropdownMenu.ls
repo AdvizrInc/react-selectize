@@ -187,13 +187,14 @@ module.exports = class DropdownMenu extends React.PureComponent
 
     # component-did-update :: () -> ()
     component-did-update: (prev-props) !->
-        if prev-props.dropdown-direction !== @props.dropdown-direction and @props.open
+        if @props.dropdown-direction == -1 and @props.open
             dropdown-menu = find-DOM-node @refs.dropdown-menu-wrapper ? @dropdown-menu
                 ..?.style.bottom = switch 
                     | @props.dropdown-direction == -1 => 
                         "#{@props.bottom-anchor!.offset-height + dropdown-menu.style.margin-bottom}px"
                         
                     | _ => ""
+                ..?.style.top = 'auto'
 
     # highlight-and-scroll-to-option :: Int, (() -> ())? -> ()
     highlight-and-scroll-to-option: (index, callback = (->)) !->

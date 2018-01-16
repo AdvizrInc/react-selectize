@@ -43,6 +43,7 @@ module.exports = class ReactSelectize extends React.Component
         on-keyboard-selection-failed: ((keycode) !-> ) # Int -> ()
         on-open-change: ((open, callback) !->) # Boolean -> (() -> ()) -> ()
         on-paste: ((e) !-> true) # Event -> Boolean
+        on-parent-scroll: ((e) !-> true)
         on-scroll-lock-change: ((scroll-lock) !->) # Boolean -> ()
         on-search-change: ((search, callback) !-> ) # String -> (() -> ()) -> ()
         on-values-change: ((values, callback) !->) # [Item] -> (() -> ()) -> ()
@@ -99,8 +100,27 @@ module.exports = class ReactSelectize extends React.Component
                     uid: uid
                     item: item
                     render-item: @props.render-value
+  
+        @getScrollParent = (node) !->
+            isElement = node instanceof HTMLElement
+            overflowY = isElement && window.getComputedStyle(node).overflowY
+            isScrollable = overflowY !== 'visible' && overflowY !== 'hidden'
+          
+            if !node 
+              return null
+            else if isScrollable && node.scrollHeight >= node.clientHeight
+              return node
+          
+            return @getScrollParent(node.parentNode) ? document.body;
 
-        flipped = @props.dropdown-direction == -1
+        @.on-parent-scroll = (e) !-> 
+            el = find-DOM-node @refs.top
+            @parent = @getScrollParent(el)
+            offset-top = el.offset-top
+            scroll-top = offset-top - (@parent.scroll-top ? window.scroll-y ? document.document-element.scroll-top)
+            @setState dropdown-direction: (if @parent.client-height - scroll-top < 215 then -1 else 1)
+
+        flipped = (@state?.dropdown-direction ? 1) == -1
 
         # REACT SELECTIZE
         div do
@@ -113,7 +133,9 @@ module.exports = class ReactSelectize extends React.Component
                 open: @props.open
                 flipped: flipped
                 tethered: @props.tether
-
+  
+            ref: \top
+  
             style: @props.style
 
             if !!@props.name
@@ -243,6 +265,7 @@ module.exports = class ReactSelectize extends React.Component
                     \react-selectize : 1
                     "#{@props.class-name}" : 1
                 theme: @props.theme
+                dropdown-direction: @state?.dropdown-direction ? 1
 
                 # scroll-lock is used for blocking mouse interference with highlighted uid when using the arrow keys
                 # to scroll through the options list
@@ -401,10 +424,17 @@ module.exports = class ReactSelectize extends React.Component
         if @props.autofocus
             @focus!
 
+        @on-parent-scroll!
+        @parent.add-event-listener \scroll, @on-parent-scroll.bind @
+  
         # if the dropdown menu is open on mount, then highlight the first selectable option
         # and focus on the search input, just like we would when it is opened by external action
         if @props.open
             @highlight-and-focus!
+  
+    # component-will-unmount :: () -> ()
+    component-will-unmount: !->
+        @parent.remove-event-listener \scroll, @on-parent-scroll
 
     # component-did-update :: Props -> UIState -> ()
     component-did-update: (prev-props) !->
