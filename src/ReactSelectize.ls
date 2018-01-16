@@ -426,6 +426,7 @@ module.exports = class ReactSelectize extends React.Component
 
         @on-parent-scroll!
         @parent.add-event-listener \scroll, @on-parent-scroll.bind @
+        @parent.add-event-listener \resize, @on-parent-scroll.bind @
   
         # if the dropdown menu is open on mount, then highlight the first selectable option
         # and focus on the search input, just like we would when it is opened by external action
@@ -435,6 +436,7 @@ module.exports = class ReactSelectize extends React.Component
     # component-will-unmount :: () -> ()
     component-will-unmount: !->
         @parent.remove-event-listener \scroll, @on-parent-scroll
+        @parent.remove-event-listener \resize, @on-parent-scroll
 
     # component-did-update :: Props -> UIState -> ()
     component-did-update: (prev-props) !->
