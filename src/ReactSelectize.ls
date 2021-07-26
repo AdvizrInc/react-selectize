@@ -168,7 +168,10 @@ module.exports = class ReactSelectize extends React.Component
                 if @props.search.length == 0 and @props.values.length == 0
 
                     # PLACEHOLDER
-                    div class-name: \react-selectize-placeholder, @props.placeholder
+                    div do
+                        class-name: \react-selectize-placeholder
+                        "aria-label": @props.placeholder
+                        @props.placeholder
 
                 div do
                     class-name: \react-selectize-search-field-and-selected-values
@@ -182,6 +185,7 @@ module.exports = class ReactSelectize extends React.Component
                             ref: \search
                             type: \text
                             value: @props.search
+                            "aria-label": @props.placeholder
 
                             # update the search text & highlight the first option
                             on-change: ({current-target:{value}}) ~>
